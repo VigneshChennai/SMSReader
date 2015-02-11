@@ -2,7 +2,9 @@
 
 import os
 import pickle
+import sys
 import time
+from datetime import datetime
 
 import gammu
 
@@ -14,9 +16,11 @@ class Color:
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
-    BOLD = "\033[1m"
+#    BOLD = "\033[1m"
+    BOLD = ""
     UNDERLINE = '\033[4m'
-    END = "\033[0m"
+    END = ""
+#    END = "\033[0m"
 
 class SMS():
 
@@ -111,7 +115,12 @@ class SMSReader():
         self._lastreadsms = self.lastreadsms()
         self.location_flag = 0
         self.start_flag = 1
-
+        self._logfile = open(sms_folder + "/smsreader.log", "w")
+    
+    def log(self, msg):
+        self._logfile.write(msg + "\n")
+        self._logfile.flush()
+        
     def lastreadsms(self, sms=None):    
         if sms:
             with open(self.sms_folder + "/lastmsg.pickle", "w") as f:
@@ -134,14 +143,16 @@ class SMSReader():
             else:
                 break
         fullfile = self.sms_folder + '/' + 'inbox/' + t + ext
-        print Color.BOLD + "Writing SMS to file: " + Color.END + str(sms) + Color.BOLD +  "\nFile location : " + Color.END + str(fullfile)
+        self.log(Color.BOLD + "Writing SMS to file: " + Color.END + str(sms) + Color.BOLD +  "\nFile location : " + Color.END + str(fullfile))
         with open(fullfile, "w") as f:
             f.write(sms.from_no)
             f.write("\n")
             f.write(sms.msg)
 
     def start(self):
+        self.log("Connecting to phone..")
         self.connect()
+        self.log("Connection successful")
         try:
             while True:
                 smses = self.readinbox()
@@ -154,8 +165,9 @@ class SMSReader():
                             self.smstofile(sms)
                     for sms in self.csmsmanager.getreadyCSMS():
                         self.smstofile(sms)
-                print "Sleeping for 30 seconds..."
+                self.log("At %s : Sleeping for 30 seconds..." % datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 time.sleep(30)
+                sys.stdout.flush()
         finally:
             self.disconnect()
 
@@ -164,9 +176,10 @@ class SMSReader():
 
     def disconnect(self):
         self.sm.Terminate()
+        self._logfile.close()
 
     def readinbox(self):
-        print "Reading Inbox .."
+        self.log("Reading Inbox ..")
         smses = []
         while True:
             sms = self._readsms()
@@ -184,9 +197,9 @@ class SMSReader():
                       date = output[0]['DateTime'],
                       msg = output[0]['Text'],
                       udh = output[0]['UDH'] if output[0]['UDH']["AllParts"] > 0 else None)
-            print Color.BOLD + "Read : " + Color.END + repr(sms)
+            self.log(Color.BOLD + "Read : " + Color.END + repr(sms))
             if sms == self._lastreadsms:
-                print Color.BOLD + "SMS read is same as last read SMS. Skip further SMS reading in Inbox..." + Color.END
+                self.log(Color.BOLD + "SMS read is same as last read SMS. Skip further SMS reading in Inbox..." + Color.END)
                 self.start_flag = 1
                 self.location_flag = 0
                 return None

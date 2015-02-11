@@ -8,4 +8,4 @@ WorkingDirectory=/content/SMS
 ExecStart=/content/SMS/smsreader.py
 
 [Install]
-
+WantedBy=multi-user.target
