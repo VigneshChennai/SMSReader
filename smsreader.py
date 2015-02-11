@@ -97,13 +97,14 @@ class CSMSManager():
 
 class SMSReader():
     
-    def __init__(self, sms_folder):
-        if not os.access(sms_folder + '/' + 'inbox', os.F_OK):
-            os.mkdir(sms_folder + '/' + 'inbox')
+    def __init__(self):
+        sms_folder = os.getcwd()
+        if not os.access(sms_folder + '/inbox', os.F_OK):
+            os.mkdir(sms_folder + '/inbox')
         
         self.sms_folder = sms_folder
         self.sm = gammu.StateMachine()
-        self.sm.ReadConfig()
+        self.sm.ReadConfig(sms_folder + "/gammurc")
         
         self.csmsmanager = CSMSManager()
         

@@ -1,0 +1,11 @@
+[Unit]
+Description=Nokia 2690 bluetooth SMS reader using gammu
+After=multi-user.target bluetooth.service
+
+[Service]
+User=%i
+WorkingDirectory=/content/SMS
+ExecStart=/usr/bin/smsreader.py
+
+[Install]
+
